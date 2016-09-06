@@ -1,0 +1,67 @@
+<?php
+
+define('PAYNL_CARTE_BLEUE_METHODID',    710);
+define('PAYNL_CARTE_BLEUE_NAME',        'Carte Bleue'); // the name of the payment method visible to the end user
+define('PAYNL_CARTE_BLEUE_METHOD_NAME', 'paynl_carte_bleue'); // name of the folder
+
+require_once __DIR__ . '/../paynl.inc.php';
+
+/*
+ * Register this payment methodh
+ */
+function paynl_carte_bleue_uc_payment_method() {
+	global $language;
+	$methods[ PAYNL_CARTE_BLEUE_METHOD_NAME ] = array(
+	    'name' => PAYNL_CARTE_BLEUE_NAME, // displayed in the admin
+	    'title' => '<img src="https://admin.pay.nl/images/payment_profiles/'. PAYNL_CARTE_BLEUE_METHODID .'.gif"> ' . PAYNL_CARTE_BLEUE_NAME, // displayed to the enduser
+	    'desc' => 'Betalen met ' . PAYNL_CARTE_BLEUE_NAME,
+	    'callback' => PAYNL_CARTE_BLEUE_METHOD_NAME . '_payment_method',
+	    'weight' => 1,
+	    'checkout' => true,
+	    'no_gateway' => false
+		);
+	return $methods;
+}
+
+
+/*
+ * Set up admin area
+ */
+
+function paynl_carte_bleue_payment_method($op, &$order, $form = NULL, &$form_state = NULL){
+  global $language;
+  
+  switch($op)
+  {
+    case 'cart-details': // for end users
+    case 'order-details': // for admins that want to change an order
+      return _paynl_show_payment_options($form_state, $order, PAYNL_CARTE_BLEUE_METHODID);
+      break;
+    case 'cart-process': 
+      $strMethodSubId = @$form_state['values']['panes']['payment']['details']['methodSubId'];
+      if( ! isset($strMethodSubId) || $strMethodSubId === null || ! $strMethodSubId)
+      {
+        unset( $_SESSION['paynl']['methodSubId'] );
+      }
+      else
+      {
+        $_SESSION['paynl']['methodSubId'] = $strMethodSubId;
+      }
+      break;
+    case 'cart-review': break;
+    case 'customer-view': break;
+    case 'order-delete': break;
+    case 'order-details': break;
+    case 'order-load': break;
+    case 'order-process': break;
+    case 'order-save': break;
+    case 'order-submit': 
+      if ($order->payment_method === PAYNL_CARTE_BLEUE_METHOD_NAME) {
+        paynl_place_order( $order, PAYNL_CARTE_BLEUE_METHODID );
+        exit;
+      }
+      break;
+    case 'order-view': break;
+    case 'settings': break;
+  }
+}

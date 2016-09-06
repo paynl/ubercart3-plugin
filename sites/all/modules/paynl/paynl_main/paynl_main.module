@@ -1,0 +1,406 @@
+<?php
+
+// comma-separated list of all methods that have a maximum amount allowed
+define('PAYNL_METHODS_WITH_MAX_AMOUNT', 'paynl_betalen_per_telefoon');
+
+/**
+ * Implementation of hook_theme().
+ */
+function paynl_main_theme()
+{
+  return array(
+    'paynl_main_payment_method_table' => array(
+      'render element' => 'form',
+      'file' => 'paynl_main.module',
+    ),
+  );
+}
+
+/**
+ * filter out methods that exceed the maximum order amount
+ */
+function paynl_main_uc_payment_method_checkout_alter(&$methods, $order)
+{
+  $intOrderTotal = (int) ($order->order_total * 100);
+  foreach(array_keys($methods) as $methodId)
+  {
+    $intMaxAmount = (int) variable_get('uc_payment_method_' . $methodId . '_max_amount', '0');
+    $intExtraCost = (int) variable_get('uc_payment_method_' . $methodId . '_adjustment', '0');
+    if($intMaxAmount > 100 && ($intOrderTotal + $intExtraCost) > $intMaxAmount)
+    {
+      unset($methods[$methodId]);
+    }
+  }
+}
+
+/**
+ * Adds the cost adjustment, and max amount input fields and icons to the 
+ * payment methods admin. Also adds the api token and service id input fields.
+ * 
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function paynl_main_form_uc_payment_methods_form_alter(&$form, &$form_state, $form_id) 
+{
+  $form['pmtable']['#theme'] = 'paynl_main_payment_method_table';
+  
+  $arrElementChildren      = element_children($form['pmtable']);
+  $arrMethodsWithMaxAmount = array_intersect($arrElementChildren, explode(',', PAYNL_METHODS_WITH_MAX_AMOUNT) );
+  
+  foreach($arrElementChildren as $methodId)
+  {
+    // add icon to the title
+    if(substr($methodId, 0, 5) == 'paynl')
+    {
+      $form['pmtable'][$methodId]['uc_payment_method_'. $methodId .'_checkout']['#title'] =
+        '<img src="https://admin.pay.nl/images/payment_profiles/'. 
+          constant(strtoupper($methodId) .'_METHODID') .
+          '.gif"> ' . 
+          constant(strtoupper($methodId) .'_NAME');        
+    }
+
+    $form['pmtable'][$methodId]['uc_payment_method_' . $methodId . '_adjustment'] = array(
+      '#type' => 'textfield',
+      '#summary callback' => 'summarize_null',
+      '#default_value' => variable_get('uc_payment_method_' . $methodId . '_adjustment', '0'),
+      '#size' => '9',
+    );
+  }
+  
+  // for every applicable method, add a textfield so a user can set a maximum amount 
+  foreach($arrMethodsWithMaxAmount as $methodId)
+  {
+    $form['pmtable'][$methodId]['uc_payment_method_' . $methodId . '_max_amount'] = array(
+      '#type' => 'textfield',
+      '#summary callback' => 'summarize_null',
+      '#default_value' => variable_get('uc_payment_method_' . $methodId . '_max_amount', '0'),
+      '#size' => '9',
+    );
+  }
+  
+   $strMethodsInfo = '<div>'
+    . t('The adjustment field can be used to associate a fee or discount with a payment method.  Specify a value that is a flat amount or a percentage of the subtotal to be added or subtracted when a payment method is chosen at checkout. Examples: 3%, 1.00, -5.5%, -2')
+    .'</div><br />';
+
+  if(isset($form['methods_info'])){
+    $form['methods_info']['#value'] .= $strMethodsInfo;
+  }else{
+    $form['methods_info']['#value'] = $strMethodsInfo;
+  }
+
+
+  // have a form so the user can save the api token and service id
+  $form['paynl_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Pay.nl settings'),
+    'paynl_settings_api_token' => array(
+      '#type'          => 'textfield',
+      '#title'         => 'API token',
+      '#default_value' => variable_get('paynl_settings_api_token', ''),
+      '#description'   => t('You can find your API token here: <a href="https://admin.pay.nl/my_merchant" target="_blank">https://admin.pay.nl/my_merchant</a> (on the bottom).'),
+    ),
+    'paynl_settings_service_id' => array(
+      '#type'          => 'textfield',
+      '#title'         => 'Service ID',
+      '#default_value' => variable_get('paynl_settings_service_id', ''),
+      '#description'   => t('You can find your service id here: <a href="https://admin.pay.nl/programs/programs" target="_blank">https://admin.pay.nl/programs/programs</a>. The serviceId starts with <strong>SL-</strong> .'),
+
+    )
+  );
+  /* Grab all payment methods so we can automatically populate the subOptionId
+   * when a customer is paying for their order and choosing a payment method.
+   *
+   * Update the pay.nl credentials before drupal does it for us to intercept 
+   * incorrect error messages when changing credentials.
+   */
+  if( isset( $_POST['paynl_settings_api_token'] ) )  variable_set('paynl_settings_api_token',  trim($_POST['paynl_settings_api_token']) );
+  if( isset( $_POST['paynl_settings_service_id'] ) ) variable_set('paynl_settings_service_id', trim($_POST['paynl_settings_service_id']) );
+  
+  $payment_options = _paynl_fetch_payment_sub_options(
+      variable_get('paynl_settings_api_token', ''),
+      variable_get('paynl_settings_service_id', '')
+  );
+  
+  if( ! $payment_options ) drupal_set_message(t('Could not retrieve information from Pay.nl. Check to see if the API token and service ID has been set correctly.'), 'error', false);
+    
+  variable_set('paynl_payment_options', $payment_options);
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function paynl_main_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form_id)
+{
+  foreach($form['panes']['payment']['payment_method']['#options'] as $key => $value)
+  {
+    $adjustment = variable_get('uc_payment_method_' . $key . '_adjustment', '');
+    if(!empty($adjustment))
+    {
+      $form['panes']['payment']['payment_method']['#options'][$key] .= '<div class="description" style="padding-left: 2.5em;">' . paynl_payment_method_adjustment_description($key) . '</div>';
+    }
+  }
+
+  //replace default payment pane ajax behaviour with our own
+  $form['panes']['payment']['payment_method']['#ajax'] = array(
+    'callback' => 'paynl_main_payment_method_ajax',
+    'progress' => array(
+      'type' => 'throbber',
+    ),
+  );
+}
+
+/**
+ * AJAX callback for payment method details on the checkout form and adding a line item of payment method adjustment.
+ */
+function paynl_main_payment_method_ajax($form, $form_state)
+{
+  if(isset($form['panes']['payment']['details']))
+  {
+    $commands[] = ajax_command_replace('#payment-details', drupal_render($form['panes']['payment']['details']));
+  }
+
+  if(isset($form['panes']['payment']['line_items']))
+  {
+    $commands[] = ajax_command_replace('#line-items-div', drupal_render($form['panes']['payment']['line_items']));
+    $commands[] = ajax_command_prepend('#line-items-div', theme('status_messages'));
+  }
+
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+/**
+ * Implementation of hook_uc_line_item().
+ */
+function paynl_main_uc_line_item() 
+{
+  $items[] = array(
+    'id'         => 'payment',
+    'title'      => t('Payment method'),
+    'weight'     => 6,
+    'stored'     => FALSE,
+    'calculated' => TRUE,
+    'add_list'   => TRUE,
+    'callback'   => 'paynl_main_adjustment_callback',
+  );
+
+  return $items;
+}
+
+/**
+ * Payment ajustment line item callback
+ */
+function paynl_main_adjustment_callback($op, &$order) 
+{
+  return array();
+  
+  
+  switch ($op) 
+  {
+    case 'load':
+      $objAdjustmentOrder = $order;
+
+      //if payment_method isn't set we pick the default one
+      if(empty($objAdjustmentOrder->payment_method))
+      {
+        $methods = _uc_payment_method_list();
+        $default = NULL;
+
+        if(count($methods) > 0)
+        {
+          foreach($methods as $id => $method)
+          {
+            if($method['checkout'] && !isset($method['express']))
+            {
+              if(is_null($default)) $default = $id;
+            }
+          }
+          $objAdjustmentOrder->payment_method = $default;
+        }
+      }
+
+      $lines = array();
+      $arrAdjustment = _paynl_payment_method_adjustment($objAdjustmentOrder);
+      if(isset($arrAdjustment['description']) && isset($arrAdjustment['value']) )
+      {
+        $lines[] = array(
+          'id'     => 'payment_method',
+          'title'  => $arrAdjustment['description'],
+          'amount' => $arrAdjustment['value'],
+        );
+      }
+
+      return $lines;
+  }
+}
+
+/**
+ * Implementation of hook_order().
+ */
+function paynl_main_uc_order($op, &$arg1)
+{
+  switch($op)
+  {
+    case 'save':
+      $adjustment = _paynl_payment_method_adjustment($arg1);
+      db_query("DELETE FROM {uc_order_line_items} WHERE order_id = :order_id AND type = 'payment_method'", array('order_id' => $arg1->order_id));
+      $min_adjust = .01;
+      
+      if($adjustment['value'] && ($adjustment['value'] >= $min_adjust || $adjustment['value'] <= -$min_adjust))
+      {
+        uc_order_line_item_add($arg1->order_id, 'payment_method', $adjustment['description'], $adjustment['value'], 1);
+      }
+      break;
+  }
+}
+
+// Retheme the payment method settings table to include the adjustment field.
+function theme_paynl_main_payment_method_table($variables)
+{
+  $form = $variables['form'];
+  
+  $arrElementChildren = element_children($form);
+  $bMaxAmountEnabled  = (bool) array_intersect($arrElementChildren, explode(',', PAYNL_METHODS_WITH_MAX_AMOUNT) );
+
+  drupal_add_tabledrag('uc-payment-methods', 'order', 'sibling', 'uc-payment-method-weight');
+
+  $arrHeader = array(
+    t('Payment method'), 
+    t('List position'), 
+    t('Adjustment (in cents)')
+  );
+  if( $bMaxAmountEnabled ) $arrHeader[] = t('Maximum amount (in cents)'); 
+  $arrHeader[] = t('Operations');
+
+  $arrRows = array();
+  foreach ($arrElementChildren as $method) 
+  {
+    $arrRow = array(
+      drupal_render($form[$method]['uc_payment_method_' . $method . '_checkout']),
+      drupal_render($form[$method]['uc_payment_method_' . $method . '_weight']),
+      drupal_render($form[$method]['uc_payment_method_' . $method . '_adjustment'])
+    );
+    if( $bMaxAmountEnabled ) $arrRow[] = drupal_render($form[$method]['uc_payment_method_' . $method . '_max_amount']);
+    $arrRow[] = drupal_render($form[$method]['settings']);
+
+    $arrRows[] = array(
+      'data' => $arrRow,
+      'class' => array('draggable'),
+    );
+  }
+
+  return theme('table', array(
+    'header' => $arrHeader, 
+    'rows' => $arrRows, 
+    'attributes' => array('id' => 'uc-payment-methods')
+    )
+  );
+}
+
+/*
+ * Add a description per payment option detailing the added fee when a 
+ * customer is choosing a payment option.
+ */
+function paynl_payment_method_adjustment_description($method_id)
+{
+  $strName       = _uc_payment_method_data($method_id, 'name');
+  $strAdjustment = variable_get('uc_payment_method_'. $method_id .'_adjustment', '');
+  if(empty($strName) || empty($strAdjustment)) 
+  {
+    return '';
+  }
+  
+  // cleanup the user-submitted adjustment
+  $strAdjustment = preg_replace('/[^-0-9'. variable_get('uc_currency_dec', '.') .']+%/', '', $strAdjustment);
+
+  // circumvert the percentages and negative fees for now
+  if(strstr($strAdjustment, '-') || strstr($strAdjustment, '%')) return '';
+  
+  if( ! strstr($strAdjustment, '%'))
+  {
+    $fAdjustment = (float) $strAdjustment / 100;
+    $strAdjustment = uc_currency_format(str_replace(variable_get('uc_currency_dec', '.'), ".", $fAdjustment));
+  }
+  
+  
+  if(strstr($strAdjustment, '-')) 
+  {
+    $strDescription = t('Receive a !adjustment discount when paying by !method.', 
+      array('!adjustment' => str_replace('-', '', $strAdjustment),
+            '!method'     => $strName)
+    );
+  }
+  else 
+  {
+    $strDescription = t('There is a !adjustment fee when paying by !method.', 
+      array('!adjustment' => $strAdjustment, 
+            '!method'     => $strName)
+    );
+  }
+
+  return $strDescription;
+}
+
+/*
+ * Calculate the added fee to an order. 
+ */
+function _paynl_payment_method_adjustment($order) 
+{
+  if(empty($order->payment_method))  {
+    return 0;
+  }
+
+  $floatSubtotal = 0.0;
+  foreach($order->products as $item)
+  {
+
+    $floatTotal = $item->price;
+    if($item->qty) $floatTotal = $item->qty * $item->price;
+
+    $floatSubtotal += $floatTotal;
+  }
+
+  $arrAdjustTypes = variable_get('paynl_main_adjustments_apply_to', array());
+  if(!empty($arrAdjustTypes))
+  {
+    foreach($order->line_items as $line_item)
+    {
+      if(in_array($line_item['type'], $arrAdjustTypes))
+      {
+        $floatSubtotal += $line_item['amount'] / 100;
+      }
+    }
+  }
+
+  $bPercent  = FALSE;
+  
+  $arrAdjustmentData = array(
+    'name'       => _uc_payment_method_data($order->payment_method, 'name'),
+    'adjustment' => variable_get('uc_payment_method_'. $order->payment_method .'_adjustment', ''),
+  );
+
+  $strAdjustment = preg_replace('/[^-0-9'. variable_get('uc_currency_dec', '.') .']+%/', '', $arrAdjustmentData['adjustment']);
+  
+  // circumvert the percentages and negative fees for now
+  if( ! is_numeric($strAdjustment) || strstr($strAdjustment, '-')) return;
+  
+  $arrReturn = array(
+    'description' => t('@name fee', array('@name' => $arrAdjustmentData['name'])),
+    'value' => (float) $strAdjustment / 100
+  );
+  
+  if(strstr($strAdjustment, '%'))
+  {
+    $bPercent        = TRUE;
+    $strAdjustment   = str_replace('%', '', $strAdjustment);
+
+    $arrReturn['value'] = $arrReturn['value'] * $floatSubtotal;
+  }
+  elseif(strstr($strAdjustment, '-'))
+  {
+    $arrReturn['description'] = t('@name discount', array('@name' => $arrAdjustmentData['name']));
+  }
+  $arrReturn['value'] = number_format((float) str_replace(variable_get('uc_currency_dec', '.'), '.', $arrReturn['value']), 2);
+
+  
+  if((float) $arrReturn['value'] == 0) return 0;
+  return $arrReturn;
+}

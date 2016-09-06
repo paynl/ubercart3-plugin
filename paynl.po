@@ -1,0 +1,159 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  paynl.inc.php: n/a
+#  paynl_main/paynl_main.info: n/a
+#  paynl_main/paynl_main.module: n/a
+#  paynl_ideal/paynl_ideal.info: n/a
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2014-12-29 16:18+0100\n"
+"PO-Revision-Date: 2015-01-14 15:23+0100\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: nl\n"
+"X-Generator: Poedit 1.7.1\n"
+
+#: paynl.inc.php:30
+msgid "Choose your bank:"
+msgstr " Kies uw bank:"
+
+#: paynl.inc.php:256
+msgid "Payment with !method succeeded for order !order_id"
+msgstr "Betaling via !method voor bestelling !order_id is gelukt"
+
+#: paynl.inc.php:278;291
+msgid "Payment with !method in progress for order !order_id"
+msgstr "Betaling via !method voor bestelling !order_id is in behandeling"
+
+#: paynl.inc.php:299;312
+msgid "Pament with !method cancelled for order !order_id"
+msgstr "Betaling via !method voor bestelling !order_id werd afgebroken"
+
+#: paynl.inc.php:354
+msgid "Payment could not be checked. The order ID was not specified."
+msgstr "De betaling kon niet gecontroleerd worden. Het order ID is niet meegestuurd."
+
+#: paynl.inc.php:380
+msgid "Could not process the payment. There was an error: !message"
+msgstr "De betaling kon niet gedaan worden. De bestelling gaf de volgende fout: !message"
+
+#: paynl.inc.php:396
+msgid "Pay.nl IPN reported a succesful payment of !amount on order !order_id"
+msgstr "Pay.nl IPN geeft een voltooide betaling door van !amount op order id !order_id"
+
+#: paynl.inc.php:409
+msgid "Pay.nl IPN reported processing the payment of !amount for order !order_id"
+msgstr "Pay.nl IPN geeft door bezig te zijn met een betaling door van !amount op order id !order_id"
+
+#: paynl.inc.php:419;423
+msgid "The payment was cancelled. Please try again."
+msgstr "De betaling werd afgebroken. Probeer het s.v.p opnieuw."
+
+#: paynl.inc.php:241;269;291;312;329;340;353;375;418
+#: paynl_main/paynl_main.info:0
+msgid "Pay.nl"
+msgstr "Pay.nl"
+
+#: paynl.inc.php:241
+msgid "IPN request not correct. Order with order id !order_id does not exist."
+msgstr "IPN verzoek niet correct; order met order_id !order_id bestaat niet."
+
+#: paynl.inc.php:269
+msgid "Payment with !method for order !order_id sucessful"
+msgstr "Betaling via !method voor bestelling !order_id is gelukt"
+
+#: paynl.inc.php:329;340
+msgid "Error retrieving order information from Pay.nl with order !order_id: !message"
+msgstr "Fout met het ophalen van ordergegevens bij pay.nl met order Id !order_id: !message"
+
+#: paynl.inc.php:353
+msgid "No order ID specified."
+msgstr "Geen order ID meegestuurd."
+
+#: paynl.inc.php:375
+msgid "Could not process the payment. The Pay.nl API gave this error: !message"
+msgstr "De betaling kon niet gedaan worden. De Pay.nl API gaf de volgende fout: !message"
+
+#: paynl.inc.php:418
+msgid "The payment was cancelled."
+msgstr "De betaling werd afgebroken."
+
+#: paynl_main/paynl_main.module:21
+msgid "The adjustment field can be used to associate a fee or discount with a payment method.  Specify a value that is a flat amount or a percentage of the subtotal to be added or subtracted when a payment method is chosen at checkout. Examples: 3%, 1.00, -5.5%, -2"
+msgstr "Het Kosten veld kan worden gebruikt worden om een korting of extra kosten door te berekenen voor een betaalmethode. Vul een bedrag in centen of een percentage in dat van het subtotaal toegevoegd of afgetrokken moet worden wanneer een betaalmethode gekozen is. Voorbeelden: 3%, 100, -5.5%, -250"
+
+#: paynl_main/paynl_main.module:45
+msgid "Pay.nl settings"
+msgstr "Pay.nl instellingen"
+
+#: paynl_main/paynl_main.module:50
+msgid "You can find your API token here: <a href=\"https://admin.pay.nl/my_merchant\" target=\"_blank\">https://admin.pay.nl/my_merchant</a> (on the bottom)."
+msgstr "U kunt API token hier vinden: <a href=\"https://admin.pay.nl/my_merchant\" target=\"_blank\">https://admin.pay.nl/my_merchant</a> (aan de onderkant)."
+
+#: paynl_main/paynl_main.module:56
+msgid "You can find your service id here: <a href=\"https://admin.pay.nl/programs/programs\" target=\"_blank\">https://admin.pay.nl/programs/programs</a>. The serviceId starts with <strong>SL-</strong> ."
+msgstr "U kunt uw service ID hier vinden: <a href=\"https://admin.pay.nl/programs/programs\" target=\"_blank\">https://admin.pay.nl/programs/programs</a>. de service ID begint met <strong>SL-</strong> ."
+
+#: paynl_main/paynl_main.module:68
+msgid "Could not retrieve information from Pay.nl. Check to see if the API token and service ID has been set correctly."
+msgstr "Kon geen verbinding maken met Pay.nl. Controleer of u de API token en service ID juist heeft ingesteld."
+
+#: paynl_main/paynl_main.module:112;181
+msgid "Payment method"
+msgstr "Betaalmethode"
+
+#: paynl_main/paynl_main.module:181
+msgid "List position"
+msgstr "Lijstpositie"
+
+#: paynl_main/paynl_main.module:181
+msgid "Adjustment (in cents)"
+msgstr "Extra kosten (in centen)"
+
+#: paynl_main/paynl_main.module:181
+msgid "Operations"
+msgstr "Instellingen"
+
+#: paynl_main/paynl_main.module:266
+msgid "Maximum amount (in cents)"
+msgstr "Maximum bedrag (in centen)"
+
+#: paynl_main/paynl_main.module:215
+msgid "Receive a !adjustment discount when paying by !method."
+msgstr "Korting van !adjustment wanneer u met !method betaalt."
+
+#: paynl_main/paynl_main.module:218
+msgid "There is a !adjustment fee when paying by !method."
+msgstr "Er wordt een extra !adjustment in rekening gebracht wanneer u met !method betaalt."
+
+#: paynl_main/paynl_main.module:260
+msgid "@name fee"
+msgstr "Extra kosten @name"
+
+#: paynl_main/paynl_main.module:277
+msgid "@name discount"
+msgstr "@name korting"
+
+#: paynl_main/paynl_main.info:0
+msgid "paynl"
+msgstr "paynl"
+
+#: paynl_main/paynl_main.info:0 paynl_ideal/paynl_ideal.info:0
+msgid "Ubercart - payment"
+msgstr "Ubercart - payment"
+
+#: paynl_ideal/paynl_ideal.info:0
+msgid "iDEAL via Pay.nl"
+msgstr "iDEAL via Pay.nl"
+
+#: paynl_ideal/paynl_ideal.info:0
+msgid "Betalingen via Pay.nl."
+msgstr "Betalingen via Pay.nl."

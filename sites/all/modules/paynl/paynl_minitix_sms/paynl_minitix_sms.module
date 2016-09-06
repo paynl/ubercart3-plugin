@@ -1,0 +1,67 @@
+<?php
+
+define('PAYNL_MINITIX_SMS_METHODID',    808);
+define('PAYNL_MINITIX_SMS_NAME',        'MiniTix SMS'); // the name of the payment method visible to the end user
+define('PAYNL_MINITIX_SMS_METHOD_NAME', 'paynl_minitix_sms'); // name of the folder
+
+require_once __DIR__ . '/../paynl.inc.php';
+
+/*
+ * Register this payment methodh
+ */
+function paynl_minitix_sms_uc_payment_method() {
+	global $language;
+	$methods[ PAYNL_MINITIX_SMS_METHOD_NAME ] = array(
+	    'name' => PAYNL_MINITIX_SMS_NAME, // displayed in the admin
+	    'title' => '<img src="https://admin.pay.nl/images/payment_profiles/'. PAYNL_MINITIX_SMS_METHODID .'.gif"> ' . PAYNL_MINITIX_SMS_NAME, // displayed to the enduser
+	    'desc' => 'Betalen met ' . PAYNL_MINITIX_SMS_NAME,
+	    'callback' => PAYNL_MINITIX_SMS_METHOD_NAME . '_payment_method',
+	    'weight' => 1,
+	    'checkout' => true,
+	    'no_gateway' => false
+		);
+	return $methods;
+}
+
+
+/*
+ * Set up admin area
+ */
+
+function paynl_minitix_sms_payment_method($op, &$order, $form = NULL, &$form_state = NULL){
+  global $language;
+  
+  switch($op)
+  {
+    case 'cart-details': // for end users
+    case 'order-details': // for admins that want to change an order
+      return _paynl_show_payment_options($form_state, $order, PAYNL_MINITIX_SMS_METHODID);
+      break;
+    case 'cart-process': 
+      $strMethodSubId = @$form_state['values']['panes']['payment']['details']['methodSubId'];
+      if( ! isset($strMethodSubId) || $strMethodSubId === null || ! $strMethodSubId)
+      {
+        unset( $_SESSION['paynl']['methodSubId'] );
+      }
+      else
+      {
+        $_SESSION['paynl']['methodSubId'] = $strMethodSubId;
+      }
+      break;
+    case 'cart-review': break;
+    case 'customer-view': break;
+    case 'order-delete': break;
+    case 'order-details': break;
+    case 'order-load': break;
+    case 'order-process': break;
+    case 'order-save': break;
+    case 'order-submit': 
+      if ($order->payment_method === PAYNL_MINITIX_SMS_METHOD_NAME) {
+        paynl_place_order( $order, PAYNL_MINITIX_SMS_METHODID );
+        exit;
+      }
+      break;
+    case 'order-view': break;
+    case 'settings': break;
+  }
+}
