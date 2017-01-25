@@ -224,7 +224,7 @@ function _paynl_order_update_status($strPaynlOrderId)
   if( $order->order_status == uc_order_state_default('payment_received') || 
       $order->order_status == uc_order_state_default('completed'))
   {
-      $_SESSION['uc_checkout'][$_SESSION['cart_order']]['do_complete'] = true;
+    @$_SESSION['uc_checkout'][$_SESSION['cart_order']]['do_complete'] = true;
 
     return array(
       'echo' => "TRUE|Statusupdate ontvangen, de order is al betaald dus statusupdate is niet doorgevoerd. Pay.nl status is: " . $strState . ' (' . $strStateText . ')',
