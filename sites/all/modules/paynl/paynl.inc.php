@@ -24,10 +24,10 @@ function paynl_main_menu() {
  * Create a transaction and redirect to the payment form.
  */
 function paynl_place_order( $order, $methodId )
-{  
+{
   global $base_url;
   require_once __DIR__ . '/includes/classes/Autoload.php';
-  
+
   $objStartApi = new Pay_Api_Start();
   // token en serviceId setten
   $objStartApi->setApiToken( variable_get('paynl_settings_api_token', '') );
@@ -37,20 +37,20 @@ function paynl_place_order( $order, $methodId )
   $objStartApi->setFinishUrl( $base_url .'/cart/paynl/return?' );
   //IPN URL
   $objStartApi->setExchangeUrl( $base_url .'/cart/paynl/exchange?' );
-  
+
   $arrBillingCountries = uc_get_country_data(array('country_id' => $order->billing_country));
   if( !$arrBillingCountries ) $arrBillingCountries = array( array( 'country_iso_code_2' => 'NL') );
   $arrBillingCountry = $arrBillingCountries[0];
-  
+
   $arrDeliveryCountries = uc_get_country_data(array('country_id' => $order->delivery_country));
   if( !$arrDeliveryCountries ) $arrDeliveryCountries = array( array( 'country_iso_code_2' => 'NL') );
   $arrDeliveryCountry = $arrDeliveryCountries[0];
-  
+
   $arrDeliveryStreet = _paynl_split_address($order->delivery_street1 .' '. $order->delivery_street2);
   $arrBillingStreet  = _paynl_split_address($order->billing_street1 .' '. $order->billing_street2);
-  
+
   $enduser = array(
-    'initals'               => _paynl_to_initials( $order->billing_first_name ), 
+    'initals'               => _paynl_to_initials( $order->billing_first_name ),
     'lastName'              => $order->billing_last_name,
     //'language'              => '',
     //'accessCode'            => '',
@@ -81,12 +81,12 @@ function paynl_place_order( $order, $methodId )
       ),
     );
   $objStartApi->setEnduser($enduser);
-  
+
   /*
    *  Add products
    */
 
-  /* not necessary to take tax in to account at this moment 
+  /* not necessary to take tax in to account at this moment
   $arrTaxCodes = array(
     '0' => 'H',
     '1' => 'H',
@@ -104,7 +104,7 @@ function paynl_place_order( $order, $methodId )
       'H'
    );
   }
-  
+
   // add all the other stuff (tax, shipping costs, payment method fee, probably even coupons if they have that module installed)
   foreach($order->line_items as $item)
   {
@@ -122,16 +122,17 @@ function paynl_place_order( $order, $methodId )
   {
     $objStartApi->setPaymentOptionSubId( $_SESSION['paynl']['methodSubId'] );
   }
-  
+
   $objStartApi->setAmount( _paynl_to_cents($order->order_total) );
   $objStartApi->setDescription( 'Order ' . $order->order_id );
 
   //save the cubecart orderid so we can refer to this when the pay.nl exchange pings back
   $objStartApi->setExtra1( $order->order_id );
+  $objStartApi->setObject('ubercart 1.1.1');
 
   //create transaction
   $arrTransaction = $objStartApi->doRequest();
-  
+
   header("Location: ". $arrTransaction['transaction']['paymentURL']);
   exit;
 }
@@ -139,19 +140,19 @@ function paynl_place_order( $order, $methodId )
 
 
 /* Handle the IPN callback.
- * 
+ *
  */
 function paynl_exchange()
 {
   if( ! isset( $_GET['order_id'] ) ||  $_GET['order_id'] === "") exit;
-  
+
     $result = _paynl_order_update_status($_GET['order_id']);
 
   echo $result['echo'];
   exit;
 }
 
-function paynl_return() 
+function paynl_return()
 {
   if(! isset($_GET['orderId']) || ! $_GET['orderId'] ){
     watchdog('Pay.nl', 'No order ID specified.', array(), WATCHDOG_ERROR);
@@ -159,9 +160,9 @@ function paynl_return()
     drupal_goto( 'cart/checkout' );
     exit;
   }
-  
+
   $result = _paynl_order_update_status($_GET['orderId']);
-  
+
   drupal_goto( $result['goto'] );
   exit;
 }
@@ -170,7 +171,7 @@ function paynl_return()
 function _paynl_order_update_status($strPaynlOrderId)
 {
   require_once __DIR__ . '/includes/classes/Autoload.php';
-  
+
   try
   {
     // get information about the transaction
@@ -181,7 +182,7 @@ function _paynl_order_update_status($strPaynlOrderId)
     $objApiInfo->setTransactionId( $strPaynlOrderId );
     //grab info about the pay.nl transaction
     $arrApiInfoResult = $objApiInfo->doRequest();
-    
+
     $strOrderId   = $arrApiInfoResult['statsDetails']['extra1'];
     $amountPaid   = (float) $arrApiInfoResult['paymentDetails']['paidAmount'] / 100;
     $strState     = $arrApiInfoResult['paymentDetails']['state'];
@@ -192,22 +193,22 @@ function _paynl_order_update_status($strPaynlOrderId)
     // for both exchange and return
     watchdog('Pay.nl',
     'Error retrieving order information from Pay.nl with order !order_id: !message',
-    array('!order_id' => $strPaynlOrderId, 
-          '!message'  => $e->getMessage()), 
+    array('!order_id' => $strPaynlOrderId,
+          '!message'  => $e->getMessage()),
     WATCHDOG_ERROR);
-   
+
     // for return
     drupal_set_message(
-        t('Could not process the payment. There was an error: !message', 
-            array('!message' => $e->getMessage() )), 
+        t('Could not process the payment. There was an error: !message',
+            array('!message' => $e->getMessage() )),
         'error');
-    
+
     return array(
       'echo' => "TRUE|De Pay.nl API gaf de volgende fout:<br />" . $e->getMessage(),
       'goto' => 'cart/checkout'
     );
   }
-  
+
   // IPN only
   if( !uc_order_exists($strOrderId) )
   {
@@ -217,14 +218,17 @@ function _paynl_order_update_status($strPaynlOrderId)
       'goto' => '/cart/checkout'
     );
   };
-  
+
   $order = uc_order_load($strOrderId);
 
   // don't update the status if the order has been successfully handled (IPN only)
-  if( $order->order_status == uc_order_state_default('payment_received') || 
+  if( $order->order_status == uc_order_state_default('payment_received') ||
       $order->order_status == uc_order_state_default('completed'))
   {
-    @$_SESSION['uc_checkout'][$_SESSION['cart_order']]['do_complete'] = true;
+
+    if (!empty($_SESSION['uc_checkout']) && !empty($_SESSION['cart_order'])) {
+      $_SESSION['uc_checkout'][$_SESSION['cart_order']]['do_complete'] = true;
+    }
 
     return array(
       'echo' => "TRUE|Statusupdate ontvangen, de order is al betaald dus statusupdate is niet doorgevoerd. Pay.nl status is: " . $strState . ' (' . $strStateText . ')',
@@ -233,62 +237,64 @@ function _paynl_order_update_status($strPaynlOrderId)
   }
 
   $goto = 'cart/checkout';
-  $echo = 'TRUE|Statusupdate ontvangen. Status is: ' . $strState . ' (' . $strStateText . ')';  
-  
+  $echo = 'TRUE|Statusupdate ontvangen. Status is: ' . $strState . ' (' . $strStateText . ')';
+
   switch( $arrApiInfoResult['paymentDetails']['stateName'] )
   {
     case 'PAID':
-      $strMessage = t('Payment with !method succeeded for order !order_id', 
+      $strMessage = t('Payment with !method succeeded for order !order_id',
         array('!order_id' => $strOrderId,
               '!method'   => _uc_payment_method_data($order->payment_method, 'name') . ' via Pay.nl')
       );
       uc_payment_enter(
-        $strOrderId, 
-        $order->payment_method, 
-        $amountPaid, 
-        0, 
-        array('Pay.nl order id' => $strPaynlOrderId), 
+        $strOrderId,
+        $order->payment_method,
+        $amountPaid,
+        0,
+        array('Pay.nl order id' => $strPaynlOrderId),
         $strMessage
       );
       uc_order_update_status( $strOrderId, uc_order_state_default('payment_received') );
       uc_order_comment_save($strOrderId, 0, $strMessage, 'admin', uc_order_state_default('payment_received') );
       uc_order_comment_save($strOrderId, 0, $strMessage, 'order', uc_order_state_default('payment_received') );
-      
+
       watchdog(
-        'Pay.nl', 
-        'Payment with !method for order !order_id sucessful', 
+        'Pay.nl',
+        'Payment with !method for order !order_id sucessful',
         array('!order_id' => $strOrderId,
               '!method'   => _uc_payment_method_data($order->payment_method, 'name') . ' via Pay.nl'),
         WATCHDOG_INFO
       );
-      
-      $_SESSION['uc_checkout'][$_SESSION['cart_order']]['do_complete'] = true;
-      
+
+      if (!empty($_SESSION['uc_checkout']) && !empty($_SESSION['cart_order'])) {
+        $_SESSION['uc_checkout'][$_SESSION['cart_order']]['do_complete'] = true;
+      }
+
       $goto = 'cart/checkout/complete';
       break;
-    
+
     case 'PENDING':
       $strMessage = t('Payment with !method in progress for order !order_id',
-        array('!order_id' => $strOrderId, 
+        array('!order_id' => $strOrderId,
               '!method'   => _uc_payment_method_data($order->payment_method, 'name') . ' via Pay.nl')
       );
-      
+
       uc_order_update_status( $strOrderId, uc_order_state_default('post_checkout') );
       uc_order_comment_save($strOrderId, 0, $strMessage, 'admin');
       uc_order_comment_save($strOrderId, 0, $strMessage, 'admin', uc_order_state_default('post_checkout') );
       uc_order_comment_save($strOrderId, 0, $strMessage, 'order', uc_order_state_default('post_checkout') );
-      
+
       watchdog(
-        'Pay.nl', 
-        'Payment with !method in progress for order !order_id', 
-        array('!order_id' => $strOrderId, 
+        'Pay.nl',
+        'Payment with !method in progress for order !order_id',
+        array('!order_id' => $strOrderId,
               '!method'   => _uc_payment_method_data($order->payment_method, 'name') . ' via Pay.nl'),
         WATCHDOG_INFO
       );
-      
+
       $goto = 'cart/checkout/complete';
       break;
-    
+
     case 'CANCEL':
       $strMessage = t('Pament with !method cancelled for order !order_id',
         array('!order_id' => $strOrderId,
@@ -299,7 +305,7 @@ function _paynl_order_update_status($strPaynlOrderId)
       uc_order_update_status( $strOrderId, uc_order_state_default('canceled') );
       uc_order_comment_save($strOrderId, 0, $strMessage, 'admin', uc_order_state_default('canceled') );
       uc_order_comment_save($strOrderId, 0, $strMessage, 'order', uc_order_state_default('canceled') );
-      
+
       watchdog(
         'Pay.nl',
         'Pament with !method cancelled for order !order_id',
@@ -307,24 +313,24 @@ function _paynl_order_update_status($strPaynlOrderId)
               '!method'   => _uc_payment_method_data($order->payment_method, 'name') . ' via Pay.nl'),
         WATCHDOG_WARNING
       );
-      
+
       drupal_set_message(t('The payment was cancelled. Please try again.'), 'error');
-      
+
       $goto = 'cart/checkout';
       break;
-    
+
     default:
       // API did not return a correct status. pretend it was cancelled to the user
       drupal_set_message(t('The payment was cancelled. Please try again.'), 'error');
-      
+
       $goto = 'cart/checkout';
   }
-  
+
   return array(
     'goto' => $goto,
-    'echo' => $echo 
+    'echo' => $echo
   );
-  
+
 }
 function _paynl_to_initials( $name )
 {
@@ -345,7 +351,7 @@ function _paynl_to_cents( $amount )
 
 /**
  * Extract the streetnumber from adress, so we can feed it to the api.
- * 
+ *
  * @param string $strAddress
  * @return array
  */
@@ -372,11 +378,11 @@ function _paynl_split_address($strAddress)
 function _paynl_show_payment_options($form_state, $order, $method_id)
 {
   $payment_options = variable_get('paynl_payment_options', array());
-  
+
   $form = array();
   if( isset($payment_options[$method_id]) )
   {
-  
+
     $form['methodSubId'] = array(
       '#type' => 'radios',
       '#title' => t('Choose your bank:'),
@@ -387,9 +393,9 @@ function _paynl_show_payment_options($form_state, $order, $method_id)
 	return $form;
 }
 
-/* Fetch all sub options per payment method associated with 
+/* Fetch all sub options per payment method associated with
  * the supplied api token and service id.
- * 
+ *
  * @param  string  $strApiToken
  * @param  string  $strServiceId
  * @return  array
