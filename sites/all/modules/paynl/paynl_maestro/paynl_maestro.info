@@ -1,4 +1,4 @@
-name = Mybank via Pay.nl
+name = Maestro via Pay.nl
 description = Betalingen via Pay.nl.
 dependencies[] = uc_cart
 dependencies[] = uc_payment

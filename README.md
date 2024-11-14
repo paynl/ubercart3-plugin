@@ -18,7 +18,7 @@ With the PAY. plugin you can easily add different payment methods to your UberCa
 - [Support](#support)
 
 # Available payment methods
-This list includes payment options like: iDEAL + QR, Bancontact + QR, Maestro, Visa, FashionCheque, Mastercard, Billink, Klarna, PayPal, Afterpay and many more. We at PAY. provide multiple payment options for your webshop. Check the full list at <a href="https://www.pay.nl/betaalmethoden">PAY's payment methods</a>.
+This list includes payment options like: iDEAL + QR, Bancontact + QR, Maestro, Visa, FashionCheque, Mastercard, Billink, Klarna, PayPal, Riverty and many more. We at PAY. provide multiple payment options for your webshop. Check the full list at <a href="https://www.pay.nl/betaalmethoden">PAY's payment methods</a>.
 For more information on this topic consult PAY. at support@pay.nl.
 
 # Installation

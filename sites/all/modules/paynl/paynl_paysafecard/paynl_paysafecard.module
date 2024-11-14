@@ -13,7 +13,7 @@ function paynl_paysafecard_uc_payment_method() {
 	global $language;
 	$methods[ PAYNL_PAYSAFECARD_METHOD_NAME ] = array(
 	    'name' => PAYNL_PAYSAFECARD_NAME, // displayed in the admin
-	    'title' => '<img src="https://admin.pay.nl/images/payment_profiles/'. PAYNL_PAYSAFECARD_METHODID .'.gif"> ' . PAYNL_PAYSAFECARD_NAME, // displayed to the enduser
+	    'title' => '<img width="25" src="https://static.pay.nl/payment_profiles/100x100/'. PAYNL_PAYSAFECARD_METHODID .'.png"> ' . PAYNL_PAYSAFECARD_NAME, // displayed to the enduser
 	    'desc' => 'Betalen met ' . PAYNL_PAYSAFECARD_NAME,
 	    'callback' => PAYNL_PAYSAFECARD_METHOD_NAME . '_payment_method',
 	    'weight' => 1,

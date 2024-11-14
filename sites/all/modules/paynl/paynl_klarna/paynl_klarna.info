@@ -1,4 +1,4 @@
-name = AfterPay via Pay.nl
+name = Klarna via Pay.nl
 description = Betalingen via Pay.nl.
 dependencies[] = uc_cart
 dependencies[] = uc_payment

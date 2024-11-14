@@ -1,4 +1,4 @@
-name = Bancontact via Pay.nl
+name = EPS via Pay.nl
 description = Betalingen via Pay.nl.
 dependencies[] = uc_cart
 dependencies[] = uc_payment

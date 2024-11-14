@@ -13,7 +13,7 @@ function paynl_gezondheidsbon_uc_payment_method() {
 	global $language;
 	$methods[ PAYNL_GEZONDHEIDSBON_METHOD_NAME ] = array(
 	    'name' => PAYNL_GEZONDHEIDSBON_NAME, // displayed in the admin
-	    'title' => '<img alt="" src="https://admin.pay.nl/images/payment_profiles/'. PAYNL_GEZONDHEIDSBON_METHODID .'.gif"> ' . PAYNL_GEZONDHEIDSBON_NAME, // displayed to the enduser
+	    'title' => '<img width="25" src="https://static.pay.nl/payment_profiles/100x100/'. PAYNL_GEZONDHEIDSBON_METHODID .'.png"> ' . PAYNL_GEZONDHEIDSBON_NAME, // displayed to the enduser
 	    'desc' => 'Betalen met ' . PAYNL_GEZONDHEIDSBON_NAME,
 	    'callback' => PAYNL_GEZONDHEIDSBON_METHOD_NAME . '_payment_method',
 	    'weight' => 1,

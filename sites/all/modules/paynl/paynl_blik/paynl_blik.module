@@ -1,21 +1,21 @@
 <?php
 
-define('PAYNL_AFTERPAY_METHODID',    739);
-define('PAYNL_AFTERPAY_NAME',        'AfterPay'); // the name of the payment method visible to the end user
-define('PAYNL_AFTERPAY_METHOD_NAME', 'paynl_afterpay'); // name of the folder
+define('PAYNL_BLIK_METHODID',    2856);
+define('PAYNL_BLIK_NAME',        'Blik'); // the name of the payment method visible to the end user
+define('PAYNL_BLIK_METHOD_NAME', 'paynl_blik'); // name of the folder
 
 require_once __DIR__ . '/../paynl.inc.php';
 
 /*
  * Register this payment method
  */
-function paynl_afterpay_uc_payment_method() {
+function paynl_blik_uc_payment_method() {
 	global $language;
-	$methods[ PAYNL_AFTERPAY_METHOD_NAME ] = array(
-	    'name' => PAYNL_AFTERPAY_NAME, // displayed in the admin
-	    'title' => '<img src="https://admin.pay.nl/images/payment_profiles/'. PAYNL_AFTERPAY_METHODID .'.gif"> ' . PAYNL_AFTERPAY_NAME, // displayed to the enduser
-	    'desc' => 'Betalen met ' . PAYNL_AFTERPAY_NAME,
-	    'callback' => PAYNL_AFTERPAY_METHOD_NAME . '_payment_method',
+	$methods[ PAYNL_BLIK_METHOD_NAME ] = array(
+	    'name' => PAYNL_BLIK_NAME, // displayed in the admin (overridden by paynl_main_form_uc_payment_methods_form_alter() )
+	    'title' => '<img width="25" src="https://static.pay.nl/payment_profiles/100x100/'. PAYNL_BLIK_METHODID .'.svg"> ' . PAYNL_BLIK_NAME, // displayed to the enduser
+	    'desc' => 'Betalen met ' . PAYNL_BLIK_NAME,
+	    'callback' => PAYNL_BLIK_METHOD_NAME . '_payment_method',
 	    'weight' => 1,
 	    'checkout' => true,
 	    'no_gateway' => false
@@ -28,20 +28,19 @@ function paynl_afterpay_uc_payment_method() {
  * Set up admin area
  */
 
-function paynl_afterpay_payment_method($op, &$order, $form = NULL, &$form_state = NULL){
-  global $language;
-  
+function paynl_blik_payment_method($op, &$order, $form = NULL, &$form_state = NULL)
+{  
   switch($op)
   {
     case 'cart-details': // for end users
     case 'order-details': // for admins that want to change an order
-      return _paynl_show_payment_options($form_state, $order, PAYNL_AFTERPAY_METHODID);
+      return _paynl_show_payment_options($form_state, $order, PAYNL_BLIK_METHODID);
       break;
     case 'cart-process': 
       $strMethodSubId = @$form_state['values']['panes']['payment']['details']['methodSubId'];
       if( ! isset($strMethodSubId) || $strMethodSubId === null || ! $strMethodSubId)
       {
-        unset( $_SESSION['paynl']['methodSubId'] );
+        unset($_SESSION['paynl']['methodSubId']);
       }
       else
       {
@@ -56,8 +55,9 @@ function paynl_afterpay_payment_method($op, &$order, $form = NULL, &$form_state 
     case 'order-process': break;
     case 'order-save': break;
     case 'order-submit': 
-      if ($order->payment_method === PAYNL_AFTERPAY_METHOD_NAME) {
-        paynl_place_order( $order, PAYNL_AFTERPAY_METHODID );
+      if($order->payment_method === PAYNL_BLIK_METHOD_NAME)
+      {
+        paynl_place_order($order, PAYNL_BLIK_METHODID);
         exit;
       }
       break;
