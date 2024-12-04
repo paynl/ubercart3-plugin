@@ -128,7 +128,7 @@ function paynl_place_order( $order, $methodId )
 
   //save the cubecart orderid so we can refer to this when the pay.nl exchange pings back
   $objStartApi->setExtra1( $order->order_id );
-  $objStartApi->setObject('ubercart 1.1.2');
+  $objStartApi->setObject('ubercart 1.1.3');
 
   //create transaction
   $arrTransaction = $objStartApi->doRequest();
