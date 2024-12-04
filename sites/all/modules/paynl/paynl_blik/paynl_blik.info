@@ -1,4 +1,4 @@
-name = E-bon via Pay.nl
+name = Blik via Pay.nl
 description = Betalingen via Pay.nl.
 dependencies[] = uc_cart
 dependencies[] = uc_payment

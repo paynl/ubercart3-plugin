@@ -13,7 +13,7 @@ function paynl_giropay_uc_payment_method() {
 	global $language;
 	$methods[ PAYNL_GIROPAY_METHOD_NAME ] = array(
 	    'name' => PAYNL_GIROPAY_NAME, // displayed in the admin
-	    'title' => '<img src="https://admin.pay.nl/images/payment_profiles/'. PAYNL_GIROPAY_METHODID .'.gif"> ' . PAYNL_GIROPAY_NAME, // displayed to the enduser
+	    'title' => '<img width="25" src="https://static.pay.nl/payment_profiles/100x100/'. PAYNL_GIROPAY_METHODID .'.png"> ' . PAYNL_GIROPAY_NAME, // displayed to the enduser
 	    'desc' => 'Betalen met ' . PAYNL_GIROPAY_NAME,
 	    'callback' => PAYNL_GIROPAY_METHOD_NAME . '_payment_method',
 	    'weight' => 1,

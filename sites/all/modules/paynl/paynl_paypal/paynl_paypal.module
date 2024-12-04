@@ -13,7 +13,7 @@ function paynl_paypal_uc_payment_method() {
 	global $language;
 	$methods[ PAYNL_PAYPAL_METHOD_NAME ] = array(
 	    'name' => PAYNL_PAYPAL_NAME, // displayed in the admin
-	    'title' => '<img src="https://admin.pay.nl/images/payment_profiles/'. PAYNL_PAYPAL_METHODID .'.gif"> ' . PAYNL_PAYPAL_NAME, // displayed to the enduser
+	    'title' => '<img width="25" src="https://static.pay.nl/payment_profiles/100x100/'. PAYNL_PAYPAL_METHODID .'.png"> ' . PAYNL_PAYPAL_NAME, // displayed to the enduser
 	    'desc' => 'Betalen met ' . PAYNL_PAYPAL_NAME,
 	    'callback' => PAYNL_PAYPAL_METHOD_NAME . '_payment_method',
 	    'weight' => 1,

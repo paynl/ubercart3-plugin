@@ -13,7 +13,7 @@ function paynl_visa_mastercard_uc_payment_method() {
 	global $language;
 	$methods[ PAYNL_VISA_MASTERCARD_METHOD_NAME ] = array(
 	    'name' => PAYNL_VISA_MASTERCARD_NAME, // displayed in the admin
-	    'title' => '<img src="https://admin.pay.nl/images/payment_profiles/'. PAYNL_VISA_MASTERCARD_METHODID .'.gif"> ' . PAYNL_VISA_MASTERCARD_NAME, // displayed to the enduser
+	    'title' => '<img width="25" src="https://static.pay.nl/payment_profiles/100x100/'. PAYNL_VISA_MASTERCARD_METHODID .'.png"> ' . PAYNL_VISA_MASTERCARD_NAME, // displayed to the enduser
 	    'desc' => 'Betalen met ' . PAYNL_VISA_MASTERCARD_NAME,
 	    'callback' => PAYNL_VISA_MASTERCARD_METHOD_NAME . '_payment_method',
 	    'weight' => 1,

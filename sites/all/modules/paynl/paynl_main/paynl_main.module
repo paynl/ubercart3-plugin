@@ -51,10 +51,11 @@ function paynl_main_form_uc_payment_methods_form_alter(&$form, &$form_state, $fo
     // add icon to the title
     if(substr($methodId, 0, 5) == 'paynl')
     {
+        if ($methodId)
       $form['pmtable'][$methodId]['uc_payment_method_'. $methodId .'_checkout']['#title'] =
-        '<img src="https://admin.pay.nl/images/payment_profiles/'. 
+        '<img width="25" src="https://static.pay.nl/payment_profiles/100x100/'.
           constant(strtoupper($methodId) .'_METHODID') .
-          '.gif"> ' . 
+          '.png"> ' .
           constant(strtoupper($methodId) .'_NAME');        
     }
 

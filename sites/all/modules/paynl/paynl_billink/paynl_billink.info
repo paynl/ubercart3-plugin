@@ -1,4 +1,4 @@
-name = MiniTix SMS via Pay.nl
+name = Billink via Pay.nl
 description = Betalingen via Pay.nl.
 dependencies[] = uc_cart
 dependencies[] = uc_payment

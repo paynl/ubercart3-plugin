@@ -1,4 +1,4 @@
-name = Bancontact via Pay.nl
+name = iDEAL in3 via Pay.nl
 description = Betalingen via Pay.nl.
 dependencies[] = uc_cart
 dependencies[] = uc_payment

@@ -13,7 +13,7 @@ function paynl_carte_bleue_uc_payment_method() {
 	global $language;
 	$methods[ PAYNL_CARTE_BLEUE_METHOD_NAME ] = array(
 	    'name' => PAYNL_CARTE_BLEUE_NAME, // displayed in the admin
-	    'title' => '<img src="https://admin.pay.nl/images/payment_profiles/'. PAYNL_CARTE_BLEUE_METHODID .'.gif"> ' . PAYNL_CARTE_BLEUE_NAME, // displayed to the enduser
+	    'title' => '<img width="25" src="https://static.pay.nl/payment_profiles/100x100/'. PAYNL_CARTE_BLEUE_METHODID .'.png"> ' . PAYNL_CARTE_BLEUE_NAME, // displayed to the enduser
 	    'desc' => 'Betalen met ' . PAYNL_CARTE_BLEUE_NAME,
 	    'callback' => PAYNL_CARTE_BLEUE_METHOD_NAME . '_payment_method',
 	    'weight' => 1,
